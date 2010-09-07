@@ -7,11 +7,12 @@ module Rfc5322
 
     def login(account,config)
         if account != nil
+            account = account.to_sym #this way both strings and symbols work
             account_config = config[:accounts][account]
         else
             account_config = config[:accounts][config[:accounts].keys[0]]
         end
-        if account_config == nil then raise "Account not found" end
+        if account_config == nil then raise "Account not found: #{account}" end
         
         if account_config[:oauth_token] == nil or account_config[:oauth_token_secret] == nil
             consumer = OAuth::Consumer.new(
@@ -34,11 +35,20 @@ module Rfc5322
         end
         
 
-        return Grackle::Client.new(:auth=>{
+        client = Grackle::Client.new(:auth=>{
             :type=>:oauth,
             :consumer_key=>Consumer_key, :consumer_secret=>Consumer_secret,
             :token=>account_config[:oauth_token], :token_secret=>account_config[:oauth_token_secret]
         })
+        
+        
+=begin If I want to start storing the id
+        if account_config[:id] == nil
+            account_config[:id]=client.account.update_profile![:id]
+        end
+=end
+        
+        return client
     end
 
     def create_email(tweet,account)
@@ -57,17 +67,17 @@ module Rfc5322
         # fix date to be rfc 5322 valid so it can be used in mail clients
         # we get "Wed Aug 09 19:28:25 +0000 2010"
         # but we want "09 Aug 2010 19:28:25 +0000" 
-        date = Date.parse(tweet.created_at)            
+        date = Date.strptime(tweet.created_at,"%a %b %d %H:%M:%S %z %Y")            
         tweet.created_at = date.strftime("%d %b %Y %H:%M:%S %z")
 
         email = <<EMAIL
-From: #{tweet.user.screen_name}
-To: #{account}
+From: #{tweet.user.screen_name}@twitter
+To: #{account}@twitter
 Subject: #{tweet.text}
 Date: #{tweet.created_at}
-Message-ID: <#{tweet.id}.twitter.com>
-#{optional_header "In-Reply-To",tweet.in_reply_to_status_id,".twitter.com"}
-#{optional_header "References:",tweet.in_reply_to_status_id,".twitter.com"}
+Message-ID: <#{tweet.id}.statuses.twitter.com>
+#{optional_header "In-Reply-To",tweet.in_reply_to_status_id,".statuses.twitter.com"}
+#{optional_header "References:",tweet.in_reply_to_status_id,".statuses.twitter.com"}
 MIME-Version: #{"1.0"}
 Content-Type: #{"text/plain; charset=UTF-8"}
 
@@ -81,16 +91,18 @@ return email.split("\n").delete_if{|l| l == "X-optional:"}.join("\n")
     def create_tweet(email)
         tweet = {}
         email.split("\n").each do |line|
-            split=line.split(" ")
-            case split[0]
-            when "From:" then tweet[:account] = split[1..-1].join(" ")
-            when "To:" then tweet[:screen_name] = split[1..-1].join(" ")
-            when "Subject:" then tweet[:status] = split[1..-1].join(" ")
-            when "Message-ID:" then tweet[:id] = split[1].split(".")[0]
-            when "In-Reply-To:" then tweet[:in_reply_to_status_id] =  split[1].split(".")[0]
-            else
-                unless tweet[:status] or line == "" or split[0].match(':$') 
-                    tweet[:status] = line
+            if line != ""
+                split=line.split(" ")
+                case split[0].downcase
+                when "from:" then tweet[:account] = line.match("<?([^\\W]+)@twitter")[1]
+                when "to:" then tweet[:screen_name] = line.match("<?([^\\W]+)@twitter")[1] 
+                when "subject:" then tweet[:status] = split[1..-1].join(" ")
+                when "message-id:" then tweet[:id] = line.match("<(\\d+)\.")[1]
+                when "in-reply-to:" then tweet[:in_reply_to_status_id] = line.match("<(\\d+)\.")[1]
+                else
+                    unless tweet[:status] or split[0].match(':$') 
+                        tweet[:status] = line
+                    end
                 end
             end
         end
