@@ -1,0 +1,7 @@
+--- 
+:accounts: 
+  :twitter: 
+    :signature: 
+    :sendmail: sendtweet --account account
+    :alternates: []
+    :email: account@twitter

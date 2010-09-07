@@ -1,0 +1,8 @@
+--- 
+- !masanjin.net,2006-10-01/Redwood/Maildir 
+  uri: maildir:~/Mail/twitter
+  usual: true
+  archived: false
+  id: 9
+  labels: 
+  - twitter
