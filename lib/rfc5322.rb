@@ -45,7 +45,7 @@ module Rfc5322
         # I don't like empty headers lying around
         def optional_header(header,data,footer)
             if data != nil
-                return "#{header}: #{data}#{footer}"
+                return "#{header}: <#{data}#{footer}>"
             else
                 return "X-optional:"
             end
@@ -65,8 +65,9 @@ From: #{tweet.user.screen_name}
 To: #{account}
 Subject: #{tweet.text}
 Date: #{tweet.created_at}
-Message-ID: #{tweet.id}.twitter.com
+Message-ID: <#{tweet.id}.twitter.com>
 #{optional_header "In-Reply-To",tweet.in_reply_to_status_id,".twitter.com"}
+#{optional_header "References:",tweet.in_reply_to_status_id,".twitter.com"}
 MIME-Version: #{"1.0"}
 Content-Type: #{"text/plain; charset=UTF-8"}
 
