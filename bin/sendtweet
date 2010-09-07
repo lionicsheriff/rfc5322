@@ -14,11 +14,13 @@ opts = Trollop::options do
     opt :account, "Account name", :type => :string
 end
 
-if ARGV.count > 0
-    tweet ={}
-    tweet[:status] = ARGV.join(" ")
-else
+tweet ={}
+unless STDIN.isatty
     tweet = create_tweet(STDIN.read)
+end
+
+if ARGV.count > 0
+    tweet[:status] = ARGV.join(" ")
 end
 
 if opts[:account_given]
