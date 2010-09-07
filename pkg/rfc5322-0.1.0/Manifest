@@ -1,7 +1,0 @@
-Manifest
-README
-Rakefile
-bin/fetchtweet
-bin/sendtweet
-lib/oauth_key.rb
-lib/rfc5322.rb
