@@ -28,14 +28,19 @@ end
 if Unicode::normalize_C(tweet[:status]).length <= 140
     client = Rfc5322.login(tweet[:account],config)
     if tweet[:status][0..1] == "RT"
-        if tweet[:id]
-            client.statuses.retweet._(tweet[:id])
+        # If In-Reply-To is set, use that id before Message-ID
+        # This is because email clients will usually set that when replying
+        # But just working off the Message-ID is good when say, cat email | sendtweet RT
+        if tweet[:in_reply_to_status_id]
+            client.statuses.retweet! :id=>tweet[:in_reply_to_status_id]
+        elsif tweet[:id]
+            client.statuses.retweet! :id=>tweet[:id]
         else
             puts "No message id"
         end
     else
         if tweet[:in_reply_to_status_id]
-            client.statuses.update! :status=>tweet[:status],:in_reply_to_status_id=>tweet[:in_reply_to_status_id]
+            client.statuses.update! :status=>tweet[:status], :in_reply_to_status_id=>tweet[:in_reply_to_status_id]
         else
             client.statuses.update! :status=>tweet[:status]
         end
