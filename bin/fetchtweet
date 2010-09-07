@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+
+require 'rfc5322.rb'
+include Rfc5322
+
+require 'rubygems'
+require 'maildir'
+require 'yaml'
+
+def process_account(account,config)
+    
+    client=Rfc5322.login(account,config)
+    account_config=config[:accounts][account]
+    
+    if account_config[:since_id] == nil
+        account_config[:since_id] = 1 
+    end
+    timeline=client.statuses.home_timeline? :since_id => account_config[:since_id],:count => 200
+    if timeline.length > 0 
+        # maildir
+        if account_config[:maildir]
+            maildir = Maildir.new(account_config[:maildir])
+            timeline.reverse.each do |tweet| maildir.add(Rfc5322.create_email(tweet,account)) end
+        end
+
+        # store id for latest message
+        account_config[:since_id] = timeline[0].id
+    end
+end
+
+
+# Main
+config_file = "#{ENV['HOME']}/.rfc5322.yaml"
+config = YAML.load_file(config_file)
+config[:accounts].keys.each do |account| process_account(account,config) end
+File.open(config_file, "w") do |f| f.write(config.to_yaml) end
