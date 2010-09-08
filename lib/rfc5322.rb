@@ -66,8 +66,8 @@ module Rfc5322
         # fix date to be rfc 5322 valid so it can be used in mail clients
         # we get "Wed Aug 09 19:28:25 +0000 2010"
         # but we want "09 Aug 2010 19:28:25 +0000" 
-        date = Date.strptime(tweet.created_at,"%a %b %d %H:%M:%S %z %Y")            
-        tweet.created_at = date.strftime("%d %b %Y %H:%M:%S %z")
+        timestamp = DateTime.parse(tweet.created_at)
+        tweet.created_at = timestamp.strftime("%d %b %Y %H:%M:%S %z")
 
         email = <<EMAIL
 From: #{tweet.user.screen_name}@twitter
