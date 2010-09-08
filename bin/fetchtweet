@@ -8,8 +8,12 @@ require 'maildir'
 require 'yaml'
 
 def process_account(account,config)
-    
-    client=Rfc5322.login(account,config)
+    begin
+        client = Rfc5322.login(account,config)
+    rescue
+        puts "Could not authenticate #{account}"
+        exit 1
+    end
     account_config=config[:accounts][account]
     
     if account_config[:since_id] == nil
@@ -30,7 +34,21 @@ end
 
 
 # Main
-config_file = "#{ENV['HOME']}/.rfc5322.yaml"
-config = YAML.load_file(config_file)
+
+begin
+    config_file = "#{ENV['HOME']}/.rfc5322.yaml"
+    config = YAML.load_file(config_file)
+rescue
+    puts "Could not find #{config_file}"
+    exit 1
+end
+
+
 config[:accounts].keys.each do |account| process_account(account,config) end
-File.open(config_file, "w") do |f| f.write(config.to_yaml) end
+
+begin
+    File.open(config_file, "w") do |f| f.write(config.to_yaml) end
+rescue
+    puts "Could not update #{config_file}"
+    exit 1
+end

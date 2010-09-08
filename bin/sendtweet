@@ -6,9 +6,13 @@ include Rfc5322
 require 'trollop'
 require 'unicode'
 
-
-config_file = "#{ENV['HOME']}/.rfc5322.yaml"
-config = YAML.load_file(config_file)
+begin
+    config_file = "#{ENV['HOME']}/.rfc5322.yaml"
+    config = YAML.load_file(config_file)
+rescue
+    puts "Could not find #{config_file}"
+    exit 1
+end
 
 opts = Trollop::options do
     opt :account, "Account name", :type => :string
@@ -27,8 +31,13 @@ if opts[:account_given]
     tweet[:account] = opts[:account]
 end
 
-if Unicode::normalize_C(tweet[:status]).length <= 140
-    client = Rfc5322.login(tweet[:account],config)
+if tweet[:status] and Unicode::normalize_C(tweet[:status]).length <= 140
+    begin
+        client = Rfc5322.login(tweet[:account],config)
+    rescue
+        puts "Could not authenticate #{tweet[:account]}"
+        exit 1
+    end
     if tweet[:status][0..1] == "RT"
         # If In-Reply-To is set, use that id before Message-ID
         # This is because email clients will usually set that when replying
@@ -39,6 +48,7 @@ if Unicode::normalize_C(tweet[:status]).length <= 140
             client.statuses.retweet! :id=>tweet[:id]
         else
             puts "No message id"
+            exit 1
         end
     else
         if tweet[:in_reply_to_status_id]
@@ -48,5 +58,6 @@ if Unicode::normalize_C(tweet[:status]).length <= 140
         end
     end
 else
-    puts "Message too long"
+    puts "Bad tweet length (#{tweet[:status] ? tweet[:status].length : 0})"
+    exit 1
 end

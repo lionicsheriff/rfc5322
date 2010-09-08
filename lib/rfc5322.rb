@@ -23,7 +23,6 @@ module Rfc5322
             request_token = consumer.get_request_token(:oauth_callback => "oob")
 
             puts "Follow this url to authorize: " + request_token.authorize_url
-            `open #{request_token.authorize_url}`
             print "PIN: "
             pin = gets.strip
 
