@@ -89,15 +89,15 @@ return email.split("\n").delete_if{|l| l == "X-optional:"}.join("\n")
 
     def create_tweet(email)
         tweet = {}
-        email.split("\n").each do |line|
+        email.each_line do |line|
             if line != ""
                 split=line.split(" ")
                 case split[0].downcase
-                when "from:" then tweet[:account] = line.match("<?([^\\W]+)@twitter")[1]
-                when "to:" then tweet[:screen_name] = line.match("<?([^\\W]+)@twitter")[1] 
+                when "from:" then tweet[:account] = split[1].match("<?([^\\W]+)(@twitter)?")[1]
+                when "to:" then tweet[:screen_name] = split[1].match("<?([^\\W]+)(@twitter)?")[1] 
                 when "subject:" then tweet[:status] = split[1..-1].join(" ")
-                when "message-id:" then tweet[:id] = line.match("<(\\d+)\.")[1]
-                when "in-reply-to:" then tweet[:in_reply_to_status_id] = line.match("<(\\d+)\.")[1]
+                when "message-id:" then tweet[:id] = split[1].match("<(\\d+)\.")[1]
+                when "in-reply-to:" then tweet[:in_reply_to_status_id] = split[1].match("<(\\d+)\.")[1]
                 else
                     unless tweet[:status] or split[0].match(':$') 
                         tweet[:status] = line
