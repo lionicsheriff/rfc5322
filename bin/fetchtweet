@@ -6,6 +6,7 @@ include Rfc5322
 require 'rubygems'
 require 'maildir'
 require 'yaml'
+require 'trollop'
 
 def process_account(account,config)
     begin
@@ -34,15 +35,30 @@ end
 
 
 # Main
+opts = Trollop::options do
+    opt :add_account, "Add account", :type => :string
+end
 
 begin
     config_file = "#{ENV['HOME']}/.rfc5322.yaml"
     config = YAML.load_file(config_file)
 rescue
-    puts "Could not find #{config_file}"
-    exit 1
+    unless opts[:add_account_given]
+        puts "Could not find #{config_file}"
+        exit 1
+    end
+    config = {}
 end
 
+
+if opts[:add_account_given]
+    if config[:accounts] == nil
+        config[:accounts] = {}
+    end
+    print "Maildir: "
+    maildir = gets.strip
+    config[:accounts][opts[:add_account].to_sym]={:maildir => maildir}
+end
 
 config[:accounts].keys.each do |account| process_account(account,config) end
 
