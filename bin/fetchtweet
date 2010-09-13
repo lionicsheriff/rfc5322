@@ -17,9 +17,11 @@ def process_account(account,config)
     end
     account_config=config[:accounts][account]
     
+    # if there last tweet received is unknown, start from the first tweet
     if account_config[:since_id] == nil
         account_config[:since_id] = 1 
     end
+    # get the last 200 tweets from the last received tweet (200 is the max)
     timeline=client.statuses.home_timeline? :since_id => account_config[:since_id],:count => 200
     if timeline.length > 0 
         # maildir
@@ -63,6 +65,7 @@ rescue
 end
 
 
+# If --add-account go through add account dialog
 if opts[:add_account_given]
     if config[:accounts] == nil
         config[:accounts] = {}
@@ -71,6 +74,7 @@ if opts[:add_account_given]
     maildir = gets.strip
     config[:accounts][opts[:add_account].to_sym]={:maildir => maildir}
 end
+
 
 if  config == {} or config[:accounts] == nil
     puts "No accounts in #{config_file}"

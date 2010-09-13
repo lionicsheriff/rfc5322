@@ -4,11 +4,17 @@ module Rfc5322
     
     require 'oauth_key.rb'
 
+    # Returns a connected client
+    # Outh tokens created if not authorised
+    # Assumes that config file is valid
+    # {:accounts => {:account: => {}}}
+    # {:accounts => {:account: => {:outh_token => string, :outh_token_secret => string}}}
     def login(account,config)
-        if account != nil
+        if account != nil 
             account = account.to_sym #this way both strings and symbols work
-            account_config = config[:accounts][account]
+            account_config = config[:accounts][account] 
         else
+            # default to first account
             account_config = config[:accounts][config[:accounts].keys[0]]
         end
         if account_config == nil then raise "Account not found: #{account}" end
@@ -49,16 +55,12 @@ module Rfc5322
         return client
     end
 
+    # Turns a tweet into an email
+    # account is the account name, it used in the To: header
+    # account@twitter is used so the sup account selector can be used (may be needed for
+    # other email clients too)
     def create_email(tweet,account)
-        # I don't like empty headers lying around
-        def optional_header(header,data,footer)
-            if data != nil
-                return "#{header}: <#{data}#{footer}>"
-            else
-                return "X-optional:"
-            end
-        end
-
+        # email can use more chars than html
         entities = HTMLEntities.new
         tweet.text = entities.decode(tweet.text)
 
@@ -67,6 +69,15 @@ module Rfc5322
         # but we want "09 Aug 2010 19:28:25 +0000" 
         timestamp = DateTime.parse(tweet.created_at)
         tweet.created_at = timestamp.strftime("%d %b %Y %H:%M:%S %z")
+
+        # I don't like empty headers lying around
+        def optional_header(header,data,footer)
+            if data != nil
+                return "#{header}: <#{data}#{footer}>"
+            else
+                return "X-optional:"
+            end
+        end
 
         email = <<EMAIL
 From: #{tweet.user.screen_name}@twitter
@@ -82,10 +93,22 @@ Content-Type: #{"text/plain; charset=UTF-8"}
 #{tweet.text}
 EMAIL
 
-# doubt this is the most efficient way
+# doubt this is the most efficient way, but I like the semantics of the email heredoc
 return email.split("\n").delete_if{|l| l == "X-optional:"}.join("\n")
     end
 
+    # Convert an email into a tweet
+    # NOTE: This will not send a tweet, it merely maps common fields between emails and tweets
+    # {:account => string, :screen_name =>, :status => string, :id => string, :in_repy_to_status_id => string}
+
+    # Common mappings
+    # * Subject:, body > status = the tweet itself (Subject: has precedence)
+    # * From: > account = account to send from
+    # * In-Reply-To: > in_reply_to_status_id = id of tweet being responded to (you still need @screen_name at the start of the status text)
+
+    # These will usually not be used
+    # * To: > screen_name = person to send to (for direct messages, not implemented yet)
+    # * Message-Id: > id = status id, this is generated at twitter. Currently only used for retweeting a tweet that has been fetched but not processed by a mua
     def create_tweet(email)
         tweet = {}
         email.each_line do |line|
