@@ -1,5 +1,4 @@
 module Rfc5322
-    require 'rubygems'
     require 'htmlentities'
     require 'grackle'
     
