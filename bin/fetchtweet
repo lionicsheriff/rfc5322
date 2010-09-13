@@ -1,11 +1,9 @@
 #!/usr/bin/env ruby
-require 'rubygems'
-
 require 'rfc5322.rb'
 include Rfc5322
 
+require 'rubygems'
 require 'maildir'
-require 'yaml'
 require 'trollop'
 
 def process_account(account,config)
