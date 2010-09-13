@@ -25,7 +25,15 @@ def process_account(account,config)
         # maildir
         if account_config[:maildir]
             maildir = Maildir.new(account_config[:maildir])
+            begin
             timeline.reverse.each do |tweet| maildir.add(Rfc5322.create_email(tweet,account)) end
+            rescue
+                puts "Could not save tweet in #{maildir}"
+                exit 1
+            end
+        else # currently no other storage options are available, so fail if there is no maildir set
+            puts "No maildir set for #{account}"
+            exit 1
         end
 
         # store id for latest message
