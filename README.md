@@ -49,11 +49,8 @@ Simplest config file is:
 AUTHENTICATION
 ==============
 
-Run fetchtweet and it will take you through the authentication process for each account in the config file. This only needs to be run once per account.
+Run fetchtweet (or fetchtweet --add-account) and it will take you through the authentication process for each account in the config file. This only needs to be run once per account.
     
-NOTE: lib/outh_key.rb
-I am currently not too sure how to deal with the ouath consumer secrets in an open source project, so currently you need to edit this with your own app registration details
-
 EMAIL
 =====
 

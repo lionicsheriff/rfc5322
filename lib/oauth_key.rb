@@ -1,2 +1,2 @@
-Consumer_key="CHANGEME"
-Consumer_secret="CHANGEME"
+Consumer_key="V9YcVlEmjhpHauCOZl6yjw"
+Consumer_secret="RKMgAEfzCAHFnwy3T7hVNdd5tJh5XnEFvoE7iIUj4"
