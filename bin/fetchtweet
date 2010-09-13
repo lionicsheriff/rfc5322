@@ -42,6 +42,10 @@ end
 begin
     config_file = "#{ENV['HOME']}/.rfc5322.yaml"
     config = YAML.load_file(config_file)
+    if config == false
+        puts "Config empty, trying backup"
+        config = YAML.load_file(config_file + ".backup")
+    end
 rescue
     unless opts[:add_account_given]
         puts "Could not find #{config_file}"
@@ -60,7 +64,7 @@ if opts[:add_account_given]
     config[:accounts][opts[:add_account].to_sym]={:maildir => maildir}
 end
 
-if  config == false or config[:accounts] == nil
+if  config == {} or config[:accounts] == nil
     puts "No accounts in #{config_file}"
     exit 1
 end

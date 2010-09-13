@@ -10,11 +10,15 @@ require 'unicode'
 begin
     config_file = "#{ENV['HOME']}/.rfc5322.yaml"
     config = YAML.load_file(config_file)
+    if config == false
+        puts "Config empty, trying backup"
+        config = YAML.load_file(config_file + ".backup")
+    end
 rescue
     puts "Could not find #{config_file}"
     exit 1
 end
-if  config == false or config[:accounts] == false
+if  config[:accounts] == nil
     puts "No accounts in #{config_file}"
     exit 1
 end
