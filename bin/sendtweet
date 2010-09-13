@@ -14,6 +14,10 @@ rescue
     puts "Could not find #{config_file}"
     exit 1
 end
+if  config == false or config[:accounts] == false
+    puts "No accounts in #{config_file}"
+    exit 1
+end
 
 opts = Trollop::options do
     opt :account, "Account name", :type => :string

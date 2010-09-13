@@ -60,6 +60,11 @@ if opts[:add_account_given]
     config[:accounts][opts[:add_account].to_sym]={:maildir => maildir}
 end
 
+if  config == false or config[:accounts] == nil
+    puts "No accounts in #{config_file}"
+    exit 1
+end
+
 config[:accounts].keys.each do |account| process_account(account,config) end
 
 begin
