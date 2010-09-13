@@ -19,6 +19,7 @@ module Rfc5322
         end
         if account_config == nil then raise "Account not found: #{account}" end
         
+        # Account not authorised
         if account_config[:oauth_token] == nil or account_config[:oauth_token_secret] == nil
             consumer = OAuth::Consumer.new(
                 Consumer_key,
