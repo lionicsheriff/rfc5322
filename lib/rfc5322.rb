@@ -90,7 +90,7 @@ return email.split("\n").delete_if{|l| l == "X-optional:"}.join("\n")
     def create_tweet(email)
         tweet = {}
         email.each_line do |line|
-            if line != ""
+            if line.strip != ""
                 split=line.split(" ")
                 case split[0].downcase
                 when "from:" then tweet[:account] = split[1].match("<?([^\\W]+)(@twitter)?")[1]
