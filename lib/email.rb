@@ -1,6 +1,7 @@
 module Rfc5322
     class Email
     require 'maildir'
+    require 'yfrog.rb'
 
         attr_accessor :headers, :body, :attachments
 
@@ -57,12 +58,24 @@ module Rfc5322
             end
         end
 
-        def to_tweet
+        def to_tweet account=nil
             # Subject: > First line of body
             tweet = Tweet.new @headers[:subject] || body.lines.first
             #NOTE: if the id is in the wrong format an error will be raised
             tweet.in_reply_to_status_id = @headers[:in_reply_to_id] && @headers[:in_reply_to_id].match(/<(\d+)\.statuses\.twitter\.com>/)[1] # id format fetched with this program
             tweet.id = @headers[:message_id] && @headers[:message_id].match(/<(\d+)\.statuses\.twitter\.com>/) && $1 # id format fetched with this program
+
+            # upload attached images and videos to yfrog
+            if account # only process attachments if an account is specified (it is needed for uploading)
+                attachments.each do |a|
+                    puts a[:headers][:content_type]
+                    if a[:headers][:content_type] =~ /^((image|video)\/.+);.*name=\"(.+)\"/ then
+                        yf = Yfrog.new account.access_key,account.access_secret
+                        url = yf.upload a[:body],$1,$3,a[:headers][:content_transfer_encoding].to_sym
+                        tweet.status << " #{url}"
+                    end
+                end
+            end
             tweet
         end
 
