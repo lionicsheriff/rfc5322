@@ -1,1 +1,0 @@
-Yfrog_key = "8AGIKLNP6531976a20cf8fb3b06fba300b83b666"
