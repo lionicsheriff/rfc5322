@@ -8,10 +8,10 @@ module Rfc5322
             @headers = options[:headers] ? options[:headers] : {}
             @body = options[:body] ? options[:body] : ""
             @attachments = options[:attachments] ? options[:attachments] : []
-            if options[:from_string] then load_string options[:from_string] end
+            if options[:from_s] then load_s options[:from_s] end
         end
 
-        def load_string str
+        def load_s str
             in_part = false
             str.each_line do |line|
                 if line.strip == "" then next end # ignore empty lines
