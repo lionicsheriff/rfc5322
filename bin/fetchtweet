@@ -5,6 +5,7 @@ include Rfc5322
 require 'rubygems'
 require 'maildir'
 require 'trollop'
+require 'yaml'
 
 def process_account(account,config)
     begin

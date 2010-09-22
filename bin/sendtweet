@@ -6,6 +6,7 @@ include Rfc5322
 
 require 'trollop'
 require 'unicode'
+require 'yaml'
 
 begin
     config_file = "#{ENV['HOME']}/.rfc5322.yaml"
