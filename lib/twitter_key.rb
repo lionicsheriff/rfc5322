@@ -1,2 +1,2 @@
-Consumer_key="V9YcVlEmjhpHauCOZl6yjw"
-Consumer_secret="RKMgAEfzCAHFnwy3T7hVNdd5tJh5XnEFvoE7iIUj4"
+Twitter_key="V9YcVlEmjhpHauCOZl6yjw"
+Twitter_secret="RKMgAEfzCAHFnwy3T7hVNdd5tJh5XnEFvoE7iIUj4"
