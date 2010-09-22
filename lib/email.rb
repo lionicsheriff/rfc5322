@@ -61,9 +61,8 @@ module Rfc5322
             # Subject: > First line of body
             tweet = Tweet.new @headers[:subject] || body.lines.first
             #NOTE: if the id is in the wrong format an error will be raised
-            tweet.in_reply_to_status_id = @headers[:in_reply_to_id] && @headers[:in_reply_to_id].match(/<(\d+)\.statuses\.twitter\.com/)[1] # id fetched with this program
-            #NOTE: Why are we fetching tweet id?
-            tweet.id = @headers[:message_id] && @headers[:message_id].match(/<(\d+)\.statuses\.twitter\.com/)[1] # id fetched with this program
+            tweet.in_reply_to_status_id = @headers[:in_reply_to_id] && @headers[:in_reply_to_id].match(/<(\d+)\.statuses\.twitter\.com>/)[1] # id format fetched with this program
+            tweet.id = @headers[:message_id] && @headers[:message_id].match(/<(\d+)\.statuses\.twitter\.com>/)[1] # id format fetched with this program
             tweet
         end
 

@@ -34,8 +34,8 @@ module Rfc5322
                 :body => @status,
                 :headers => { :subject => @status,
                               :from => @screen_name && "#{@screen_name}@twitter",
-                              :in_reply_to => @in_reply_to_status_id && "<#{@in_reply_to_status_id}.statuses.twitter.com",
-                              :references => @in_reply_to_status_id && "<#{@in_reply_to_status_id}.statuses.twitter.com",
+                              :in_reply_to => @in_reply_to_status_id && "<#{@in_reply_to_status_id}.statuses.twitter.com>",
+                              :references => @in_reply_to_status_id && "<#{@in_reply_to_status_id}.statuses.twitter.com>",
                               :message_id => @id && "<#{@id}.statuses.twitter.com>",
                               :date => @created_at
                             }

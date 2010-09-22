@@ -1,0 +1,85 @@
+#!/usr/bin/env ruby
+require 'twitter.rb'
+
+require 'rubygems'
+require 'trollop'
+require 'yaml'
+
+# Init phase                                                                   #
+################################################################################
+
+# load cli args
+opts = Trollop::options do
+        opt :account, "Account to use", :type => :string
+        opt :maildir, "Maildir to fetch to", :type => :string
+        opt :last_tweet, "Id of last tweet retrieved", :type => :int
+        opt :create, "Add account to config", :type => :boolean, :default => false
+        opt :tweet_count, "Amount of tweets to retrieve", :type => :int
+end
+Trollop::die :maildir, "Must specify account" unless opts[:account_given] or !opts[:maildir_given]
+Trollop::die :last_tweet, "Must specify account" unless opts[:account_given] or !opts[:last_tweet]
+Trollop::die :create, "Must specify account" unless opts[:create] or !opts[:create]
+
+# symbols are used for the account name
+opts[:account_given] && opts[:account] = opts[:account].to_sym
+
+
+# load config file
+config_file = "#{ENV['HOME']}/.rfc5322.rc"
+config = begin
+    config = YAML.load_file(config_file) || YAML.load_file(config_file + ".backup")
+rescue Exception => e
+    unless opts[:create]
+        raise e
+    end
+    config = {}
+end
+
+
+# Main                                                                         #
+################################################################################
+
+# Add account if specified
+if opts[:create] then
+    # create accounts key if it doesn't exist
+    config[:accounts] = config[:accounts] || {}
+
+    # set maildir, if not specified on commandline get input
+    maildir = if opts[:maildir_given] then opts[:maildir]
+              else print "Maildir " ; $STDIN.gets.strip end
+
+    # add account
+    config[:accounts][opts[:account]]={:maildir => maildir}
+end
+
+# Fetch accounts
+config[:accounts].keys.each do |a|
+
+    # only use requested account, defaults to all
+    if !opts[:account_given] or a == opts[:account] then
+
+        # You can specify drop location on a single account
+        opts[:maildir_given] && config[:accounts][opts[:account]][:maildir] = opts[:maildir]
+
+        acc_con = config[:accounts][a]
+        account = Rfc5322::Twitter.new acc_con[:access_key],acc_con[:access_secret]
+        maildir = opts[:maildir_given] ? opts[:maildir] : acc_con[:maildir]
+        since_id = opts[:last_tweet_given] ? opts[:last_tweet] : acc_con[:since_id]
+        tweet_count = opts[:tweet_count_given] ? opts[:tweet_count_given] : 200
+        acc_con[:since_id] = account.fetch_tweets maildir,since_id,tweet_count
+
+        # store the tokens, no guarantee it started with them
+        acc_con[:access_key] = account.access_key
+        acc_con[:access_secret] = account.access_secret
+
+    end
+end
+
+
+
+# Clean up                                                                     #
+################################################################################
+
+# update config file
+(File.exist? config_file) && File.rename(config_file,config_file + ".backup")
+File.open(config_file, "w") do |f| f.write(config.to_yaml) end

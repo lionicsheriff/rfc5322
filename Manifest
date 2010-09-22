@@ -3,11 +3,10 @@ Manifest
 README.md
 Rakefile
 bin/fetchtweet
-bin/sendtweet
+lib/email.rb
 lib/oauth_key.rb
-lib/rfc5322.rb
-lib/yfrog.rb
-lib/yfrog_key.rb
+lib/tweet.rb
+lib/twitter.rb
 sup/config.yaml
 sup/hooks/before-edit.rb
 sup/hooks/before-poll.rb

@@ -1,4 +1,7 @@
 module Rfc5322
+require 'tweet.rb'
+require 'email.rb'
+
 require 'grackle'
 require 'htmlentities'
 
@@ -48,6 +51,8 @@ require 'oauth_key.rb'
         end
 
         def fetch_tweets(maildir,since_id=1,count=200)
+            since_id ||= 1
+            count ||= 200
             timeline=client.statuses.home_timeline? :since_id => since_id,:count => count
             if timeline.length > 0 then
                     timeline.reverse.each do |tweet|
@@ -61,13 +66,14 @@ require 'oauth_key.rb'
                         timestamp = DateTime.parse(tweet.created_at)
                         tweet.created_at = timestamp.strftime("%d %b %Y %H:%M:%S %z")
 
-                        puts tweet.user.screen_name
+                        # create email through tweet class to normalize tweet->email
                         (Tweet.new tweet.text,:id => tweet.id,
                                               :in_reply_to_status_id => tweet.in_reply_to_status_id,
                                               :created_at => tweet.created_at,
                                               :screen_name => tweet.user.screen_name).to_email.store_maildir maildir
                 end
             end
+            timeline.first.id
         end
     end #class Twitter
 end #module Rfc5322
