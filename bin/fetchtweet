@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# fetchtweet
+
 require 'twitter.rb'
 
 require 'rubygems'
