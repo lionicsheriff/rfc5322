@@ -34,12 +34,34 @@ rescue Exception => e
     config = {}
 end
 
+## select account
+
+### add account if specified
+if opts[:create] then
+    #### create accounts key if it doesn't exist
+    config[:accounts] = config[:accounts] || {}
+
+    #### set maildir, if not specified on commandline get input
+    maildir = if opts[:maildir_given] then opts[:maildir]
+              else print "Maildir " ; $STDIN.gets.strip end
+
+    #### add account
+    config[:accounts][opts[:account]]={:maildir => maildir}
+end
+
+acc_con = if config[:accounts] and config[:accounts].count > 0 then
+    opts[:account_given] ? config[:accounts][opts[:account]] : config[:accounts].first
+else
+    raise "Account not found"
+end
+account = Rfc5322::Twitter.new acc_con[:access_key],acc_con[:access_secret]
+
 ## create tweet to send
 
 ### read STDIN
 
 tweet = unless STDIN.isatty # i.e. it is a pipe
-   (Rfc5322::Email.new :from_s => STDIN.read).to_tweet
+   (Rfc5322::Email.new :from_s => STDIN.read).to_tweet account
 else
    Rfc5322::Tweet.new
 end
@@ -55,29 +77,9 @@ end
 # Main                                                                         #
 ################################################################################
 
-## Add account if specified
-if opts[:create] then
-    ### create accounts key if it doesn't exist
-    config[:accounts] = config[:accounts] || {}
-
-    ### set maildir, if not specified on commandline get input
-    maildir = if opts[:maildir_given] then opts[:maildir]
-              else print "Maildir " ; $STDIN.gets.strip end
-
-    ### add account
-    config[:accounts][opts[:account]]={:maildir => maildir}
-end
 
 ## Send tweet
-
-acc_con = if config[:accounts] and config[:accounts].count > 0 then
-    opts[:account_given] ? config[:accounts][opts[:account]] : config[:accounts].first
-else
-    raise "Account not found"
-end
-
 if tweet.status.length > 0
-    account = Rfc5322::Twitter.new acc_con[:access_key],acc_con[:access_secret]
     tweet.post account
 end
 
