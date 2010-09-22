@@ -65,6 +65,16 @@ module Rfc5322
             tweet.in_reply_to_status_id = @headers[:in_reply_to_id] && @headers[:in_reply_to_id].match(/<(\d+)\.statuses\.twitter\.com>/)[1] # id format fetched with this program
             tweet.id = @headers[:message_id] && @headers[:message_id].match(/<(\d+)\.statuses\.twitter\.com>/) && $1 # id format fetched with this program
 
+            # extra text in body is sent to pastebin
+            paste = if body && body.lines.count > 0 and tweet.status == body.lines.first then
+                body.lines.to_a[1..-1].join
+            else
+                body
+            end
+            unless paste =="" then
+                tweet.status << " " << (Net::HTTP.post_form URI.parse("http://pastebin.com/api_public.php"),{'paste_code' => paste}).body
+            end
+
             # upload attached images and videos to yfrog
             if account # only process attachments if an account is specified (it is needed for uploading)
                 attachments.each do |a|
