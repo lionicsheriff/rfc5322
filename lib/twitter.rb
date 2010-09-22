@@ -5,7 +5,7 @@ require 'email.rb'
 require 'grackle'
 require 'htmlentities'
 
-require 'oauth_key.rb'
+require 'twitter_key.rb'
 
     class Twitter
         attr_accessor :access_key,:access_secret,:client,:name
@@ -23,8 +23,8 @@ require 'oauth_key.rb'
             # Account not authorised
             if @access_key == nil or @access_secret == nil
                 consumer = OAuth::Consumer.new(
-                    Consumer_key,
-                    Consumer_secret,
+                    Twitter_key,
+                    Twitter_secret,
                     {:site => 'http://twitter.com'} 
                 )
                 request_token = consumer.get_request_token(:oauth_callback => "oob")
@@ -41,13 +41,9 @@ require 'oauth_key.rb'
 
             @client = Grackle::Client.new(:auth=>{
                 :type=>:oauth,
-                :consumer_key=>Consumer_key, :consumer_secret=>Consumer_secret,
+                :consumer_key=>Twitter_key, :consumer_secret=>Twitter_secret,
                 :token=>@access_key, :token_secret=>@access_secret,
             })
-        end
-
-        def tweet_email(email)
-            email.to_tweet.tweet self
         end
 
         def fetch_tweets(maildir,since_id=1,count=200)

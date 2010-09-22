@@ -2,7 +2,7 @@ module Rfc5322
     class Tweet 
         attr_accessor :status, :in_reply_to_status_id, :id
 
-        def initialize status,extra={}
+        def initialize status="",extra={}
             @status = status
             @in_reply_to_status_id = extra[:in_reply_to_status_id]
             @created_at = extra[:created_at]
@@ -28,6 +28,15 @@ module Rfc5322
                 account.client.statuses.update! :id => @id
             end
         end
+
+        def post account
+            if @status[0..1].upcase == "RT" then
+                retweet account
+            else
+                tweet account
+            end
+        end
+
 
         def to_email
             Email.new({

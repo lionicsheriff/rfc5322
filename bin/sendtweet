@@ -1,0 +1,92 @@
+#!/usr/bin/env ruby
+# sendtweet
+
+require 'twitter.rb'
+
+require 'rubygems'
+require 'trollop'
+require 'yaml'
+
+# Init phase                                                                   #
+################################################################################
+
+## load cli args
+opts = Trollop::options do
+        opt :account, "Account to use", :type => :string
+        opt :create, "Add account to config", :type => :boolean, :default => false
+        opt :maildir, "Maildir to fetch to (for account creation)", :type => :string
+end
+Trollop::die :create, "Must specify account" unless opts[:create] or !opts[:create]
+Trollop::die :maildir, "Only use with --create" unless opts[:create] or !opts[:maildir_given]
+
+### symbols are used for the account name
+opts[:account_given] && opts[:account] = opts[:account].to_sym
+
+
+## load config file
+config_file = "#{ENV['HOME']}/.rfc5322.rc"
+config = begin
+    config = YAML.load_file(config_file) || YAML.load_file(config_file + ".backup")
+rescue Exception => e
+    unless opts[:create]
+        raise e
+    end
+    config = {}
+end
+
+## create tweet to send
+
+### read STDIN
+
+tweet = unless STDIN.isatty # i.e. it is a pipe
+   (Rfc5322::Email.new :from_s => STDIN.read).to_tweet
+else
+   Rfc5322::Tweet.new
+end
+
+### apply cli args to tweet
+
+#### leftover args are the tweet text
+if ARGV.count > 0
+        tweet.status = ARGV.join(" ")
+end
+
+
+# Main                                                                         #
+################################################################################
+
+## Add account if specified
+if opts[:create] then
+    ### create accounts key if it doesn't exist
+    config[:accounts] = config[:accounts] || {}
+
+    ### set maildir, if not specified on commandline get input
+    maildir = if opts[:maildir_given] then opts[:maildir]
+              else print "Maildir " ; $STDIN.gets.strip end
+
+    ### add account
+    config[:accounts][opts[:account]]={:maildir => maildir}
+end
+
+## Send tweet
+
+acc_con = if config[:accounts] and config[:accounts].count > 0 then
+    opts[:account_given] ? config[:accounts][opts[:account]] : config[:accounts].first
+else
+    raise "Account not found"
+end
+
+if tweet.status.length > 0
+    account = Rfc5322::Twitter.new acc_con[:access_key],acc_con[:access_secret]
+    tweet.post account
+end
+
+
+
+# Clean up                                                                     #
+################################################################################
+
+# update config file
+# NOTE: Race condition with fetchtweet?
+(File.exist? config_file) && File.rename(config_file,config_file + ".backup")
+File.open(config_file, "w") do |f| f.write(config.to_yaml) end
