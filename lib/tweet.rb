@@ -1,4 +1,5 @@
 module Rfc5322
+    require 'unicode'
     class Tweet 
         attr_accessor :status, :in_reply_to_status_id, :id
 
@@ -33,9 +34,16 @@ module Rfc5322
             if @status[0..1].upcase == "RT" then
                 retweet account
             else
-                tweet account
+                length = Unicode::normalize_C(@status).length
+                if length <= 140
+                    tweet account
+                else
+                    raise "Tweet status is too long (#{length})"
+                end
+                    
             end
         end
+
 
 
         def to_email
