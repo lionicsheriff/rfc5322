@@ -10,7 +10,8 @@ require 'yaml'
 def process_account(account,config)
     begin
         client = Rfc5322.login(account,config)
-    rescue
+    rescue Exception => e
+        puts e.backtrace
         puts "Could not authenticate #{account}"
         exit 1
     end
@@ -23,7 +24,8 @@ def process_account(account,config)
     # get the last 200 tweets from the last received tweet (200 is the max)
     begin
     timeline=client.statuses.home_timeline? :since_id => account_config[:since_id],:count => 200
-    rescue 
+    rescue Exception => e
+        puts e.backtrace
         # this assumes that the only time we get a non 200 response is from a bad consumer key
         puts "Unable to continue, please upgrade"
         exit 1
@@ -34,7 +36,8 @@ def process_account(account,config)
             maildir = Maildir.new(account_config[:maildir])
             begin
             timeline.reverse.each do |tweet| maildir.add(Rfc5322.create_email(tweet,account)) end
-            rescue
+            rescue Exception => e
+                puts e.backtrace
                 puts "Could not save tweet in #{maildir}"
                 exit 1
             end
@@ -61,8 +64,9 @@ begin
         puts "Config empty, trying backup"
         config = YAML.load_file(config_file + ".backup")
     end
-rescue
+rescue Exception => e
     unless opts[:add_account_given]
+        puts e.backtrace
         puts "Could not find #{config_file}"
         exit 1
     end
@@ -91,7 +95,8 @@ config[:accounts].keys.each do |account| process_account(account,config) end
 begin
     File.rename(config_file,config_file + ".backup")
     File.open(config_file, "w") do |f| f.write(config.to_yaml) end
-rescue
+rescue Exception => e
+    puts e.backtrace
     puts "Could not update #{config_file}"
     exit 1
 end

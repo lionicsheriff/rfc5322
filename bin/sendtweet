@@ -15,7 +15,8 @@ begin
         puts "Config empty, trying backup"
         config = YAML.load_file(config_file + ".backup")
     end
-rescue
+rescue Exception => e
+    puts e.backtrace
     puts "Could not find #{config_file}"
     exit 1
 end
@@ -51,7 +52,8 @@ end
 if tweet[:status] and Unicode::normalize_C(tweet[:status]).length <= 140
     begin
         client = Rfc5322.login(tweet[:account],config)
-    rescue
+    rescue Exception => e
+        puts e.backtrace
         puts "Could not authenticate #{tweet[:account]}"
         exit 1
     end
@@ -75,7 +77,8 @@ if tweet[:status] and Unicode::normalize_C(tweet[:status]).length <= 140
                 client.statuses.update! :status=>tweet[:status]
             end
         end
-    rescue
+    rescue Exception => e
+        puts e.backtrace
         # this assumes that the only time we get a non 200 response is from a bad consumer key
         puts "Unable to continue, please upgrade"
         exit 1
