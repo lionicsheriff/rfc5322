@@ -8,7 +8,6 @@ lib/oauth_key.rb
 lib/rfc5322.rb
 lib/yfrog.rb
 lib/yfrog_key.rb
-rfc5322.gemspec
 sup/config.yaml
 sup/hooks/before-edit.rb
 sup/hooks/before-poll.rb
