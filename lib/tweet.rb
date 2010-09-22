@@ -39,10 +39,21 @@ module Rfc5322
                 retweet account
             else
                 shorten_urls
-                if length <= 140
-                    tweet account
-                else
-                    raise "Tweet status is too long (#{length})"
+                attempt = 1
+                begin
+                    if length <= 140
+                        tweet account
+                    else
+                        attempt += 1
+                        raise "Tweet status is too long (#{length} characters)"
+                    end
+                rescue Exception => e
+                    if attempt > 2 then
+                        raise e
+                    else
+                        shorten_text
+                        retry
+                    end 
                 end
             end
         end
@@ -60,6 +71,10 @@ module Rfc5322
             end).join(" ")
         end
 
+        def shorten_text
+            # use tweetshrink service
+            @status = (Net::HTTP.post_form URI.parse('http://tweetshrink.com/shrink'),{'format' => 'string', 'text' => @status}).body
+        end
 
 
 
