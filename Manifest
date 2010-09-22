@@ -4,7 +4,7 @@ README.md
 Rakefile
 bin/fetchtweet
 lib/email.rb
-lib/oauth_key.rb
+lib/twitter_key.rb
 lib/tweet.rb
 lib/twitter.rb
 sup/config.yaml
