@@ -72,8 +72,10 @@ require 'oauth_key.rb'
                                               :created_at => tweet.created_at,
                                               :screen_name => tweet.user.screen_name).to_email.store_maildir maildir
                 end
+                timeline[0].id
+            else
+                since_id
             end
-            timeline.first.id
         end
     end #class Twitter
 end #module Rfc5322
