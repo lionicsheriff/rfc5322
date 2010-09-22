@@ -11,6 +11,8 @@ Fetchs tweets and stores them in maildir format. All accounts specified in ~/.rf
 Sends a tweet using specified account (defaults to first in config file).
 It also accepts an email piped into it (see EMAIL)
 
+Attached images are uploaded to yfrog and the url is appended to the tweet
+
 EXAMPLES
 ========
 
@@ -70,4 +72,6 @@ The relevant parts are:
     + used for retweets if In-reply-to is not set
     + statusid.statuses.twitter.com
 * Body
-    + the tweet (Subject: takes precedence)
+    + first line is the tweet (Subject: takes precedence)
+* Attachments
+    + images are uploaded to yfrog and the url is appended to the tweet
