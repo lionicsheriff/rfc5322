@@ -4,6 +4,9 @@ module Rfc5322
     
     require 'oauth_key.rb'
 
+    require 'yfrog.rb'
+
+
     # Returns a connected client
     # Outh tokens created if not authorised
     # Assumes that config file is valid
@@ -110,8 +113,28 @@ return email.split("\n").delete_if{|l| l == "X-optional:"}.join("\n")
     # These will usually not be used
     # * To: > screen_name = person to send to (for direct messages, not implemented yet)
     # * Message-Id: > id = status id, this is generated at twitter. Currently only used for retweeting a tweet that has been fetched but not processed by a mua
-    def create_tweet(email)
+    def create_tweet(email,account)
+        def parse_attachment(attach)
+                attachment = {}
+                attachment[:body]=""
+                attach.each_line do |line|
+                    unless line == nil or line == ""
+                        case line
+                        when /^.+:/ then 
+                                split = line.split(":")
+                                attachment[split[0]] = split[1]
+                        else
+                                attachment[:body] << line
+                        end
+                    end
+                end
+                return attachment
+        end
+
         tweet = {}
+        parts = []
+        boundary =""
+        in_part = false
         email.each_line do |line|
             if line.strip != ""
                 split=line.split(" ")
@@ -121,13 +144,47 @@ return email.split("\n").delete_if{|l| l == "X-optional:"}.join("\n")
                 when "subject:" then tweet[:status] = split[1..-1].join(" ")
                 when "message-id:" then tweet[:id] = split[1].match("<(\\d+)\.")[1]
                 when "in-reply-to:" then tweet[:in_reply_to_status_id] = split[1].match("<(\\d+)\.")[1]
+                when "content-type:" then if split[1] == "multipart/mixed;" then 
+                    boundary = split[2].split("\"")[1].downcase 
+                elsif in_part
+                        parts.last << line
+                end
+            when "--#{boundary}" then 
+                    in_part = true
+                    parts << ""
+            when "--#{boundary}" then in_part = false
                 else
+                    if in_part
+                        parts.last << line
+                    end
                     unless tweet[:status] or split[0].match(':$') 
                         tweet[:status] = line
                     end
                 end
             end
         end
+
+
+        # deal with attachments
+        parts.each do |p|
+            part = parse_attachment(p)
+            if part["Content-Type"] and part["Content-Type"].match(/image\//) then
+                yf = Yfrog.new account[:oauth_token],account[:oauth_token_secret]
+                filename = part["Content-Type"].match(/name=['"](.*)['"]/)[1] # this might not work for all emails. Currently just focused on rmail (used in sup)
+                mime = part["Content-Type"].match(/(image\/.*);/)[1]
+                tweet[:status] << " " + yf.upload_image_b64(part[:body],mime,filename)
+            end
+        end
+
+
+        # shrink status
+
+        # shorten urls
+
+        # if it is too long still run through tweetshrink
+
+
         return tweet
     end
+
 end

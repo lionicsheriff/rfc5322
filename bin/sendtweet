@@ -30,9 +30,15 @@ end
 # Initialize tweet
 tweet ={}
 
+if opts[:account_given]
+    tweet[:account] = opts[:account]
+end
+
+
 # Doing it this way allows both pipes and args to be active at once
 unless STDIN.isatty # i.e. is a pipe. 
-    tweet = create_tweet(STDIN.read)
+    unless tweet[:account] then tweet[:account] = config[:accounts].keys.first end
+    tweet = create_tweet(STDIN.read,config[:accounts][tweet[:account].to_sym])
 end
 
 # Leftover args are the tweet text
@@ -40,9 +46,6 @@ if ARGV.count > 0
     tweet[:status] = ARGV.join(" ")
 end
 
-if opts[:account_given]
-    tweet[:account] = opts[:account]
-end
 
 if tweet[:status] and Unicode::normalize_C(tweet[:status]).length <= 140
     begin
@@ -64,10 +67,10 @@ if tweet[:status] and Unicode::normalize_C(tweet[:status]).length <= 140
                 puts "No message id"
                 exit 1
             end
-        else # normal tweet
+        else # reply
             if tweet[:in_reply_to_status_id] 
                 client.statuses.update! :status=>tweet[:status], :in_reply_to_status_id=>tweet[:in_reply_to_status_id]
-            else # no point sending a blank id
+            else # normal tweet
                 client.statuses.update! :status=>tweet[:status]
             end
         end
