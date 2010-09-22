@@ -12,6 +12,10 @@ module Rfc5322
 
         end
 
+        def length
+            Unicode::normalize_C(@status).length
+        end
+
         # should this be made less grackle dependant?
         def tweet account
             if @in_reply_to_status_id then
@@ -34,15 +38,28 @@ module Rfc5322
             if @status[0..1].upcase == "RT" then
                 retweet account
             else
-                length = Unicode::normalize_C(@status).length
+                shorten_urls
                 if length <= 140
                     tweet account
                 else
                     raise "Tweet status is too long (#{length})"
                 end
-                    
             end
         end
+
+        # go through status and shorten every long url
+        def shorten_urls
+            @status = (@status.split(" ").collect do |word|
+                if word =~ URI::regexp and word.length > 30 then
+                    # using tinyurl
+                    # NOTE: look into retwt.me, they have a simple api (w/o auth) and provide analysis
+                    (Net::HTTP.post_form URI.parse('http://tinyurl.com/api-create.php'),{"url" => word}).body
+                else
+                    word
+                end
+            end).join(" ")
+        end
+
 
 
 
