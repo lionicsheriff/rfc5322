@@ -21,9 +21,7 @@ Fetchs tweets and stores them in maildir format. All accounts specified in ~/.rf
 
     Options:
       --account, -a <s>:   Account to use
-           --create, -c:   Add account to config
          --pastebin, -p:   Send extra content of body to pastebin.com
-      --maildir, -m <s>:   Maildir to fetch to (for account creation)
              --help, -h:   Show this message
 
 Sends a tweet using specified account (defaults to first in config file).

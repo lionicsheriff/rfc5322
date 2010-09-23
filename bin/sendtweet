@@ -13,12 +13,9 @@ require 'yaml'
 ## load cli args
 opts = Trollop::options do
         opt :account, "Account to use", :type => :string
-        opt :create, "Add account to config", :type => :boolean, :default => false
         opt :pastebin, "Send extra content of body to pastebin.com", :type => :boolean, :default => false
-        opt :maildir, "Maildir to fetch to (for account creation)", :type => :string
 end
 Trollop::die :create, "Must specify account" unless opts[:create] or !opts[:create]
-Trollop::die :maildir, "Only use with --create" unless opts[:create] or !opts[:maildir_given]
 
 ### symbols are used for the account name
 opts[:account_given] && opts[:account] = opts[:account].to_sym
@@ -37,20 +34,6 @@ config = if File.exist? config_file then
          end
 
 ## select account
-
-### add account if specified
-if opts[:create] then
-    #### create accounts key if it doesn't exist
-    config[:accounts] = config[:accounts] || {}
-
-    #### set maildir, if not specified on commandline get input
-    maildir = if opts[:maildir_given] then opts[:maildir]
-              else print "Maildir " ; $STDIN.gets.strip end
-
-    #### add account
-    config[:accounts][opts[:account]]={:maildir => maildir}
-end
-
 acc_con = if config[:accounts] and config[:accounts].count > 0 then
     opts[:account_given] ? config[:accounts][opts[:account]] : config[:accounts].first
 else
@@ -89,8 +72,3 @@ end
 
 # Clean up                                                                     #
 ################################################################################
-
-# update config file
-# NOTE: Race condition with fetchtweet?
-(File.exist? config_file) && File.rename(config_file,config_file + ".backup")
-File.open(config_file, "w") do |f| f.write(config.to_yaml) end
