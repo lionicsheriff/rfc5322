@@ -2,7 +2,7 @@ require 'rubygems'
 require 'rake'
 require 'echoe'
 
-Echoe.new('rfc5322', '1.0.0') do |p|
+Echoe.new('rfc5322', '1.0.1') do |p|
     p.description    = "Converts tweets to email and back"
     p.url            = "http://github.com/lionicsheriff/rfc5322"
     p.author         = "Matthew Goodall"

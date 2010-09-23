@@ -83,7 +83,7 @@ module Rfc5322
         def to_email
             Email.new({
                 :body => @status,
-                :headers => { :subject => @status,
+                :headers => { :subject => @status.lines.count > 1 ? "" : @status,
                               :from => @screen_name && "#{@screen_name}@twitter",
                               :in_reply_to => @in_reply_to_status_id && "<#{@in_reply_to_status_id}.statuses.twitter.com>",
                               :references => @in_reply_to_status_id && "<#{@in_reply_to_status_id}.statuses.twitter.com>",
