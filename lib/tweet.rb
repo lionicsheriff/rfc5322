@@ -12,7 +12,6 @@ module Rfc5322
             @created_at = extra[:created_at]
             @screen_name = extra[:screen_name]
             @id = extra[:id]
-
         end
 
         def length
@@ -31,9 +30,9 @@ module Rfc5322
         def retweet account
             if @status[0..1].upcase != "RT" then @status = "RT " + @status end
             if @in_reply_to_status_id then
-                account.client.statuses.update! :id => @in_reply_to_status_id
+                account.client.statuses.retweet! :id => @in_reply_to_status_id
             elsif @id
-                account.client.statuses.update! :id => @id
+                account.client.statuses.retweet! :id => @id
             end
         end
 
