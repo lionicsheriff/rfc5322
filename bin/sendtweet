@@ -14,6 +14,7 @@ require 'yaml'
 opts = Trollop::options do
         opt :account, "Account to use", :type => :string
         opt :create, "Add account to config", :type => :boolean, :default => false
+        opt :pastebin, "Send extra content of body to pastebin.com", :type => :boolean, :default => false
         opt :maildir, "Maildir to fetch to (for account creation)", :type => :string
 end
 Trollop::die :create, "Must specify account" unless opts[:create] or !opts[:create]
@@ -61,7 +62,7 @@ account = Rfc5322::Twitter.new acc_con[:access_key],acc_con[:access_secret]
 ### read STDIN
 
 tweet = unless STDIN.isatty # i.e. it is a pipe
-   (Rfc5322::Email.new :from_s => STDIN.read).to_tweet account
+   (Rfc5322::Email.new :from_s => STDIN.read).to_tweet :account => account, :pastebin => opts[:pastebin]
 else
    Rfc5322::Tweet.new
 end

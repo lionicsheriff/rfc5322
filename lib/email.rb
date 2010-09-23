@@ -58,7 +58,7 @@ module Rfc5322
             end
         end
 
-        def to_tweet account=nil
+        def to_tweet opts={}
             # Subject: > First line of body
             tweet = Tweet.new @headers[:subject] || body.lines.first || ""
             #NOTE: if the id is in the wrong format an error will be raised
@@ -66,20 +66,28 @@ module Rfc5322
             tweet.id = @headers[:message_id] && @headers[:message_id].match(/<(\d+)\.statuses\.twitter\.com>/) && $1 # id format fetched with this program
 
             # extra text in body is sent to pastebin
-            paste = if body && body.lines.count > 0 and tweet.status == body.lines.first then
-                body.lines.to_a[1..-1].join
-            else
-                body
-            end
-            unless paste =="" then
-                tweet.status << " " << (Net::HTTP.post_form URI.parse("http://pastebin.com/api_public.php"),{'paste_code' => paste}).body
+            if opts[:pastebin] then
+                paste = if body and body.lines.count > 0 and tweet.status == body.lines.first then
+                    body.lines.to_a[1..-1].join
+                else
+                    body
+                end
+                unless paste =="" then
+                    tweet.status << " " << (Net::HTTP.post_form URI.parse("http://pastebin.com/api_public.php"),{'paste_code' => paste}).body
+                end
             end
 
             # upload attached images and videos to yfrog
-            if account # only process attachments if an account is specified (it is needed for uploading)
+            # only process attachments if an account is specified (it is needed for uploading)
+            if opts[:account] or (opts[:access_key] and opts[:access_secret])
+                access_key,access_secret = if opts[:account] then
+                                           [opts[:account].access_key,opts[:account].access_key]
+                                           else
+                                               [opts[:access_key],opts[:access_secret]]
+                                           end
                 attachments.each do |a|
                     if a[:headers][:content_type] =~ /^((image|video)\/.+);.*name=\"(.+)\"/ then
-                        yf = Yfrog.new account.access_key,account.access_secret
+                        yf = Yfrog.new access_key,access_secret
                         url = yf.upload a[:body],$1,$3,a[:headers][:content_transfer_encoding].to_sym
                         tweet.status << " #{url}"
                     end
