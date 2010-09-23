@@ -15,7 +15,7 @@ USAGE
       --tweet-count, -t <i>:   Amount of tweets to retrieve
                  --help, -h:   Show this message
 
-Fetchs tweets and stores them in maildir format. All accounts specified in ~/.rfc5322.yaml are fetched.
+Fetchs tweets and stores them in maildir format. All accounts specified in ~/.rfc5322.rc are fetched.
     
 ## sendtweet [options] [tweet]
 
@@ -58,7 +58,7 @@ Use email format with specific account
 CONFIG
 ======
 
-## ~/.rfc5322.yaml
+## ~/.rfc5322.rc
     
 Simplest config file is:
     
