@@ -81,7 +81,7 @@ module Rfc5322
             # only process attachments if an account is specified (it is needed for uploading)
             if opts[:account] or (opts[:access_key] and opts[:access_secret])
                 access_key,access_secret = if opts[:account] then
-                                           [opts[:account].access_key,opts[:account].access_key]
+                                           [opts[:account].access_key,opts[:account].access_secret]
                                            else
                                                [opts[:access_key],opts[:access_secret]]
                                            end
