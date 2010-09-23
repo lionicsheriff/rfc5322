@@ -7,6 +7,6 @@ Echoe.new('rfc5322', '0.5.1') do |p|
     p.url            = "http://github.com/lionicsheriff/rfc5322"
     p.author         = "Matthew Goodall"
     p.email          = "dogsaw+rfc5322@thecyberplains.com"
-    p.ignore_pattern = ["pkg/*", "tmp/*", "script/*"]
-    p.development_dependencies = ["maildir","trollop","htmlentities","unicode","grackle"]
+    p.ignore_pattern = ["pkg/*", "tmp/*", "script/*","*.gemspec"]
+    p.dependencies = ["maildir","trollop","htmlentities","unicode","grackle","roauth"]
 end
