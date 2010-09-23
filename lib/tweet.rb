@@ -1,5 +1,8 @@
 module Rfc5322
     require 'unicode'
+
+    TweetLengthError = Class.new StandardError
+
     class Tweet 
         attr_accessor :status, :in_reply_to_status_id, :id
 
@@ -45,9 +48,9 @@ module Rfc5322
                         tweet account
                     else
                         attempt += 1
-                        raise "Tweet status is too long (#{length} characters)"
+                        raise TweetLengthError,"Tweet status is too long (#{length} characters)"
                     end
-                rescue Exception => e
+                rescue TweetLengthError => e
                     if attempt > 2 then
                         raise e
                     else
