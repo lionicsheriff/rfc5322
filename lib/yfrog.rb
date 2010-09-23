@@ -61,7 +61,8 @@ REQ
             if doc.elements["rsp"].attributes["stat"] == "ok"
                 doc.elements["rsp"].elements.each("mediaurl") do |u| return u.text end
             end
-            raise "Upload failed"
+
+            raise "Upload failed: #{res.body}"
 
         end
 
