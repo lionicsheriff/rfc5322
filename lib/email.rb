@@ -30,7 +30,7 @@ module Rfc5322
                     in_part = true
                     @attachments << {:body => "", :headers =>{}}  # add a new part
                 when /--#{@boundary}--/ then in_part = false
-                when /(.+): .+/ then 
+                when /^(.+?): .+/ then 
                     unless in_part then
                         @headers[$1.gsub(/-/,"_").to_sym] = line.match(/.+: (.+)/)[1]
                     else
