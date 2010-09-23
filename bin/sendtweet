@@ -26,14 +26,15 @@ opts[:account_given] && opts[:account] = opts[:account].to_sym
 
 ## load config file
 config_file = "#{ENV['HOME']}/.rfc5322.rc"
-config = begin
-    config = YAML.load_file(config_file) || YAML.load_file(config_file + ".backup")
-rescue Exception => e
-    unless opts[:create]
-        raise e
-    end
-    config = {}
-end
+config = if File.exist? config_file then
+            YAML.load_file(config_file)
+         elsif File.exist? config_file + ".backup" then
+            YAML.load_file(config_file + ".backup")
+         elsif opts[:create]
+             {}
+         else
+             raise "No config found: #{config_file}"
+         end
 
 ## select account
 
