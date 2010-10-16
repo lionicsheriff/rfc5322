@@ -103,7 +103,6 @@ module Rfc5322
             end
 <<EMAIL
 #{@headers.keys.collect do |k| header k,@headers[k] end}
-
 #{body}
 
 #{@attachments.collect do |a| 
