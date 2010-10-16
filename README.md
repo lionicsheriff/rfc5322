@@ -1,21 +1,42 @@
 FIRST USE
 =========
 
-Before you do anything, you want some accounts in the config file.  Run 'fetchtweet -c -a accountname -m /path/to/maildir' and it will take you through the authentication process for the account. This only needs to be run once per account.
+Before you do anything, you want some accounts in the config file.  Run 
     
+    fetchtweet --create --account accountname --maildir /path/to/maildir
+    
+and it will take you through the authentication process for the account. This only needs to be run once per account.
+
+You can also add some queries. Unlike the previous command these don't require an account. Run 
+
+    fetchtweet --create --query "query string here" --maildir /path/to/maildir
+
+Since the results for queries are quickly updating and they are not as important as tweets shown in your home timeline, you may want to limit the results
+    
+    fetchtweet --create --count 3 --lang code --query "query string here" --maildir /path/to/maildir
+
 USAGE
 =====
 ## fetchtweet [options]
 
     Options:
-          --account, -a <s>:   Account to use
-          --maildir, -m <s>:   Maildir to fetch to
-       --last-tweet, -l <i>:   Id of last tweet retrieved
-               --create, -c:   Add account to config
-      --tweet-count, -t <i>:   Amount of tweets to retrieve
-                 --help, -h:   Show this message
+         --account, -a <s>:   Account to use
+           --query, -q <s>:   Query to use
+         --no-accounts, -n:   Don't fetch home timelines
+          --no-queries, -o:   Don't fetch queries
 
-Fetchs tweets and stores them in maildir format. All accounts specified in ~/.rfc5322.rc are fetched.
+    Single account or query only
+              --create, -c:   Add account or query to config
+         --maildir, -m <s>:   Maildir to fetch to
+      --last-tweet, -l <s>:   Id of last tweet retrieved
+           --count, -u <i>:   Amount of tweets to retrieve (default: 100)
+
+    Query only
+            --lang, -g <s>:   Language of tweets (ISO 639-1) (default: )
+
+                --help, -h:   Show this message
+
+Fetchs tweets and stores them in maildir format. Unless specified all accounts and queries in ~/.rfc5322.rc are fetched. By running --query without --create, you can search twitter and store the tweets without saving status to the configuration file.
     
 ## sendtweet [options] [tweet]
 
@@ -65,6 +86,30 @@ Simplest config file is:
         :accountname: 
             :maildir: /path/to/maildir
     
+
+Queries can be added with:
+
+    :queries:
+        your query string here:
+            :maildir: /path/to/maildir
+
+Queries have a few option variables too
+
+        :count: number of tweets
+        :lang: ISO 639-1 format
+
+Full Config example
+
+    ---
+    :accounts: 
+        :accountname: 
+            :maildir: /path/to/maildir
+    :queries:
+        your query string here:
+            :maildir: /path/to/another_maildir
+            :count: 1
+            :lang: en
+
 EMAIL -> TWEET MAPPING
 ======================
 

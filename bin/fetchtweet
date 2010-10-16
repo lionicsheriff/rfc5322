@@ -12,19 +12,47 @@ require 'yaml'
 
 # load cli args
 opts = Trollop::options do
-        opt :account, "Account to use", :type => :string
-        opt :maildir, "Maildir to fetch to", :type => :string
-        opt :last_tweet, "Id of last tweet retrieved", :type => :int
-        opt :create, "Add account to config", :type => :boolean, :default => false
-        opt :tweet_count, "Amount of tweets to retrieve", :type => :int
+    banner "Usage: #{File.basename(__FILE__)} [options]"
+
+    banner ""
+    opt :account, "Account to use", :type => :string
+    opt :query, "Query to use", :type => :string
+    opt :no_accounts, "Don't fetch home timelines"
+    opt :no_queries, "Don't fetch queries"
+
+    banner ""
+    banner "Single account or query only"
+    opt :create, "Add account or query to config",:short => "C"
+    opt :maildir, "Maildir to fetch to", :type => :string
+    opt :last_tweet, "Id of last tweet retrieved", :type => :string
+    opt :count, "Amount of tweets to retrieve", :type => :int,:default => 100
+
+    banner ""
+    banner "Query only"
+    opt :lang, "Language of tweets (ISO 639-1)", :default => ""
+
+    banner ""
+    # help shows up here
+
+    conflicts :account,:query
+
 end
-Trollop::die :maildir, "Must specify account" unless opts[:account_given] or !opts[:maildir_given]
-Trollop::die :last_tweet, "Must specify account" unless opts[:account_given] or !opts[:last_tweet]
-Trollop::die :create, "Must specify account" unless opts[:create] or !opts[:create]
+Trollop::die :maildir, "Must specify account or query" unless opts[:account_given] or opts[:query_given] or !opts[:maildir_given]
+Trollop::die :last_tweet, "Must specify account or query" unless opts[:account_given] or opts[:query_given] or !opts[:last_tweet]
+Trollop::die :create, "Must specify account or query" unless opts[:account_given] or opts[:query_given] or !opts[:create_given]
+
+#Trollop::die :account, "Can only specify one query or account" if opts[:query_given] and opts[:account_given]
+
 
 # symbols are used for the account name
 opts[:account_given] && opts[:account] = opts[:account].to_sym
 
+# Search API and Rest API have slightly different ids
+
+# Search API: None grabs the earliest; ids start from 0
+opts[:query_given] && opts[:last_tweet] = opts[:last_tweet] == "None" ? opts[:last_tweet] : opts[:last_tweet].to_i
+# Rest API: ids start from 1
+opts[:account_given] && opts[:last_tweet] = opts[:last_tweet].to_i > 0 ? opts[:last_tweet].to_i : 1
 
 # load config file
 config_file = "#{ENV['HOME']}/.rfc5322.rc"
@@ -43,7 +71,7 @@ config = if File.exist? config_file then
 ################################################################################
 
 # Add account if specified
-if opts[:create] then
+if opts[:create] and opts[:account_given] then
     # create accounts key if it doesn't exist
     config[:accounts] = config[:accounts] || {}
 
@@ -56,27 +84,72 @@ if opts[:create] then
 end
 
 # Fetch accounts
-config[:accounts].keys.each do |a|
+unless opts[:no_accounts_given] then
+    config[:accounts].keys.each do |a|
 
-    # only use requested account, defaults to all
-    if !opts[:account_given] or a == opts[:account] then
+        # only use requested account, defaults to all
+        if !opts[:account_given] or a == opts[:account] then
 
-        # You can specify drop location on a single account
-        opts[:maildir_given] && config[:accounts][opts[:account]][:maildir] = opts[:maildir]
+            # You can specify drop location on a single account
+            # NOTE: this will save the new location
+            #opts[:maildir_given] && config[:accounts][opts[:account]][:maildir] = opts[:maildir]
 
-        acc_con = config[:accounts][a]
-        account = Rfc5322::Twitter.new acc_con[:access_key],acc_con[:access_secret]
-        maildir = opts[:maildir_given] ? opts[:maildir] : acc_con[:maildir]
-        since_id = opts[:last_tweet_given] ? opts[:last_tweet] : acc_con[:since_id]
-        tweet_count = opts[:tweet_count_given] ? opts[:tweet_count_given] : 200
-        acc_con[:since_id] = account.home_timeline maildir,since_id,tweet_count
+            acc_con = config[:accounts][a]
+            account = Rfc5322::Twitter.new acc_con[:access_key],acc_con[:access_secret]
+            maildir = opts[:maildir_given] ? opts[:maildir] : acc_con[:maildir]
+            since_id = opts[:last_tweet_given] ? opts[:last_tweet] : acc_con[:since_id]
+            acc_con[:since_id] = account.home_timeline maildir,since_id,opts[:count]
 
-        # store the tokens, no guarantee it started with them
-        acc_con[:access_key] = account.access_key
-        acc_con[:access_secret] = account.access_secret
+            # store the tokens, no guarantee it started with them
+            acc_con[:access_key] = account.access_key
+            acc_con[:access_secret] = account.access_secret
+
+        end
+    end
+end
+
+# Create query entry
+if opts[:create] and opts[:query_given] then
+    # create queries key if it doesn't exist
+    config[:queries] = config[:queries] || {}
+
+    # set maildir, if not specified on commandline get input
+    maildir = if opts[:maildir_given] then opts[:maildir]
+              else print "Maildir: " ; $STDIN.gets.strip end
+
+    # add account
+    config[:queries][opts[:query]]={:count=>opts[:count],:since_id => "None",:maildir => maildir}
+end
+
+
+# Fetch queries
+unless opts[:no_queries_given]
+    config[:queries].keys.each do |q|
+        if !opts[:query_given] or q == opts[:query] then
+            q_con = config[:queries][q]
+            maildir = opts[:maildir_given] ? opts[:maildir] : q_con[:maildir]
+            since_id = opts[:last_tweet_given] ? opts[:last_tweet] : q_con[:since_id]
+            count = opts[:count_given] ? opts[:count] : q_con[:count] || opts[:count]
+            lang = opts[:lang_given] ? opts[:lang] : q_con[:lang] || opts[:lang]
+            q_con[:since_id] = Rfc5322::Twitter.search q,maildir,:since_id=>since_id,:count=>count,:lang=>lang
+
+            # if the query was provided, stop processing
+            if opts[:query_given] then break true end
+        end
+    end && opts[:query_given] && begin
+        # You get into this block after all saved queries have been processed but none matched the provided query
+        # It will get run without saving it
+
+        # we need a place to store the tweets
+        Trollop::die :query,"Must provide a maildir for non stored queries" unless opts[:maildir_given] 
+
+        since_id = opts[:last_tweet_given] ? opts[:last_tweet] : "None"
+        Rfc5322::Twitter.search opts[:query],opts[:maildir],:since_id=>since_id,:count=>opts[:count],:lang=>opts[:lang]
+
 
     end
 end
+
 
 
 
