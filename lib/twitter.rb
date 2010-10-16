@@ -46,7 +46,7 @@ require 'twitter_key.rb'
             })
         end
 
-        def fetch_tweets(maildir,since_id=1,count=200)
+        def home_timeline(maildir,since_id=1,count=200)
             since_id ||= 1
             count ||= 200
             timeline=client.statuses.home_timeline? :since_id => since_id,:count => count

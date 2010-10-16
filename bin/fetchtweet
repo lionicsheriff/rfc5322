@@ -69,7 +69,7 @@ config[:accounts].keys.each do |a|
         maildir = opts[:maildir_given] ? opts[:maildir] : acc_con[:maildir]
         since_id = opts[:last_tweet_given] ? opts[:last_tweet] : acc_con[:since_id]
         tweet_count = opts[:tweet_count_given] ? opts[:tweet_count_given] : 200
-        acc_con[:since_id] = account.fetch_tweets maildir,since_id,tweet_count
+        acc_con[:since_id] = account.home_timeline maildir,since_id,tweet_count
 
         # store the tokens, no guarantee it started with them
         acc_con[:access_key] = account.access_key
