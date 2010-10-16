@@ -54,6 +54,7 @@ require 'twitter_key.rb'
                     timeline.reverse.each do |tweet|
                         # plaintext email can use more chars than html
                         entities = HTMLEntities.new
+                        tweet.text = "RT " + tweet.retweeted_status.text rescue tweet.text
                         tweet.text = entities.decode(tweet.text)
 
                         # fix date to be rfc 5322 valid so it can be used in mail clients
