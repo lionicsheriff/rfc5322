@@ -88,6 +88,7 @@ module Rfc5322
                 end rescue urls
                 urls
             end
+            long_urls = long_urls.length > 0 ? long_urls.join("\n").insert(0,"\n") << "\n" : ""
 
             hash_tags = @status.split(" ").reduce([]) do |urls,word|
                 if word[0] == ?# then
@@ -95,18 +96,23 @@ module Rfc5322
                 end
                 urls
             end
+            hash_tags = hash_tags.length > 0 ? hash_tags.join("\n").insert(0,"\n") << "\n" : ""
+
+            mentions = @status.split(" ").reduce([]) do |urls,word|
+                if word[0] == ?@ then
+                    urls << "http://twitter.com/#{word[1..-1]}"
+                end
+                urls
+            end
+            mentions = mentions.length > 0 ? mentions.join("\n").insert(0,"\n") << "\n" : ""
 
 
             Email.new({
-                :body => <<BODY,
+                :body => <<BODY + long_urls + hash_tags + mentions,
 #@status
 --
 http://twitter.com/#@screen_name
 http://twitter.com/#@screen_name/status/#@id
-
-#{long_urls.join "\n"}
-
-#{hash_tags.join "\n"}
 BODY
 
                 :headers => { :subject => @status.lines.count > 1 ? @status.lines.first.strip : @status,
