@@ -81,12 +81,23 @@ module Rfc5322
 
 
         def to_email
+            long_urls = @status.split(" ").reduce([]) do |urls,word|
+                if word =~ URI::regexp then
+                        response = Net::HTTP.get_response URI.parse word 
+                        urls << response.header["location"] if response.code[0] == ?3 
+                end
+                urls
+            end
+
+
             Email.new({
                 :body => <<BODY,
 #@status
 --
 http://twitter.com/#@screen_name
 http://twitter.com/#@screen_name/status/#@id
+
+#{long_urls.join "\n"}
 BODY
 
                 :headers => { :subject => @status.lines.count > 1 ? @status.lines.first.strip : @status,
