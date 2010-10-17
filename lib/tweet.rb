@@ -88,6 +88,10 @@ module Rfc5322
                 end rescue urls
                 urls
             end
+
+            hash_tags = @status.split(" ").reduce([]) do |urls,word|
+                if word[0] == ?# then
+                    urls << "http://twitter.com/search/%23#{word[1..-1]}"
                 end
                 urls
             end
@@ -101,6 +105,8 @@ http://twitter.com/#@screen_name
 http://twitter.com/#@screen_name/status/#@id
 
 #{long_urls.join "\n"}
+
+#{hash_tags.join "\n"}
 BODY
 
                 :headers => { :subject => @status.lines.count > 1 ? @status.lines.first.strip : @status,
