@@ -29,7 +29,7 @@ opts = Trollop::options do
 
     banner ""
     banner "Query only"
-    opt :lang, "Language of tweets (ISO 639-1)", :default => ""
+    opt :lang, "Language of tweets (ISO 639-1)",:type => :string,:default => nil
 
     banner ""
     # help shows up here
@@ -130,7 +130,7 @@ unless opts[:no_queries_given]
             maildir = opts[:maildir_given] ? opts[:maildir] : q_con[:maildir]
             since_id = opts[:last_tweet_given] ? opts[:last_tweet] : q_con[:since_id]
             count = opts[:count_given] ? opts[:count] : q_con[:count] || opts[:count]
-            lang = opts[:lang_given] ? opts[:lang] : q_con[:lang] || opts[:lang]
+            lang = opts[:lang_given] ? opts[:lang] : q_con[:lang] || ""
             q_con[:since_id] = Rfc5322::Twitter.search q,maildir,:since_id=>since_id,:count=>count,:lang=>lang
 
             # if the query was provided, stop processing
