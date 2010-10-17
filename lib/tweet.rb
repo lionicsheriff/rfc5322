@@ -81,29 +81,18 @@ module Rfc5322
 
 
         def to_email
-            long_urls = @status.split(" ").reduce([]) do |urls,word|
-                if word =~ URI::regexp then
+            long_urls,hash_tags,mentions = @status.split(" ").reduce([[],[],[]]) do |urls,word|
+                case word
+                when URI::regexp then
                         response = Net::HTTP.get_response URI.parse word 
-                        urls << response.header["location"] if response.code[0] == ?3 
+                        urls[0] << response.header["location"] if response.code[0] == ?3 
+                when /^#/ then urls[1] << "http://twitter.com/search/%23#{word[1..-1]}"
+                when /^@/ == ?@ then urls[2] << "http://twitter.com/#{word[1..-1]}"
                 end rescue urls
                 urls
             end
             long_urls = long_urls.length > 0 ? long_urls.join("\n").insert(0,"\n") << "\n" : ""
-
-            hash_tags = @status.split(" ").reduce([]) do |urls,word|
-                if word[0] == ?# then
-                    urls << "http://twitter.com/search/%23#{word[1..-1]}"
-                end
-                urls
-            end
             hash_tags = hash_tags.length > 0 ? hash_tags.join("\n").insert(0,"\n") << "\n" : ""
-
-            mentions = @status.split(" ").reduce([]) do |urls,word|
-                if word[0] == ?@ then
-                    urls << "http://twitter.com/#{word[1..-1]}"
-                end
-                urls
-            end
             mentions = mentions.length > 0 ? mentions.join("\n").insert(0,"\n") << "\n" : ""
 
 
