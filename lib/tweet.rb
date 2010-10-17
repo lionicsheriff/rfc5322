@@ -85,6 +85,9 @@ module Rfc5322
                 if word =~ URI::regexp then
                         response = Net::HTTP.get_response URI.parse word 
                         urls << response.header["location"] if response.code[0] == ?3 
+                end rescue urls
+                urls
+            end
                 end
                 urls
             end
