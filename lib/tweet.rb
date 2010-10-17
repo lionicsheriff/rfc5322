@@ -86,7 +86,7 @@ module Rfc5322
 #@status
 --
 http://twitter.com/#@screen_name
-https://twitter.com/#!/#@screen_name/status/#@id
+http://twitter.com/#@screen_name/status/#@id
 BODY
 
                 :headers => { :subject => @status.lines.count > 1 ? @status.lines.first.strip : @status,
